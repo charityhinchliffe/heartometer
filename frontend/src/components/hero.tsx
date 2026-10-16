@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const capabilities = [
   {
@@ -47,18 +48,18 @@ export function Hero() {
             Heartometer is a straightforward way to read personal risk. You enter your sugar level, blood pressure, age, and alcohol status. A machine learning model turns those inputs into a prediction of how likely heart disease is for you.
           </p>
           <div className="rise mt-8 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "240ms" }}>
-            <a
-              href="#how-it-works"
+            <Link
+              href="/heartometer"
               className="btn-pine inline-flex h-12 items-center justify-center gap-2 rounded-full bg-pine px-6 text-sm font-medium text-white shadow-[0_14px_30px_-16px_rgba(14,122,70,0.95)] transition-colors hover:bg-pine-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
             >
-              See the three steps
+              Try out
               <Arrow />
-            </a>
+            </Link>
             <a
-              href="#demographics"
+              href="#how-it-works"
               className="inline-flex h-12 items-center justify-center rounded-full border border-line bg-white/80 px-6 text-sm font-medium text-ink backdrop-blur transition-colors hover:border-pine hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
             >
-              View world data
+              See the three steps
             </a>
           </div>
 

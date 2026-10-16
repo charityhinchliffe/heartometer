@@ -129,6 +129,60 @@ body {
   animation: dot-seq 2.4s ease-in-out infinite;
 }
 
+.range-pine {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0e7a46 var(--pct), #e7f6ee var(--pct));
+  outline: none;
+  cursor: pointer;
+}
+
+.range-pine::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 999px;
+  border: 2px solid #0e7a46;
+  background: #ffffff;
+  box-shadow: 0 6px 16px -8px rgba(14, 122, 70, 0.9);
+  cursor: pointer;
+}
+
+.range-pine::-moz-range-thumb {
+  height: 22px;
+  width: 22px;
+  border-radius: 999px;
+  border: 2px solid #0e7a46;
+  background: #ffffff;
+  box-shadow: 0 6px 16px -8px rgba(14, 122, 70, 0.9);
+  cursor: pointer;
+}
+
+.range-pine:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid #0e7a46;
+  outline-offset: 3px;
+}
+
+.spin-ring {
+  animation: spin-ring 0.8s linear infinite;
+}
+
+.prediction-spin {
+  animation: spin-ring 0.7s linear infinite;
+}
+
+.prediction-spin-reverse {
+  animation: spin-ring 1.15s linear infinite reverse;
+}
+
+.prediction-pulse {
+  animation: prediction-pulse 1.1s ease-in-out infinite;
+}
+
 .btn-pine {
   position: relative;
   overflow: hidden;
@@ -179,6 +233,21 @@ body {
   to {
     background-position: 220% 0;
   }
+}
+
+@keyframes prediction-card {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.prediction-card {
+  animation: prediction-card 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes rise {
@@ -258,6 +327,24 @@ body {
   }
 }
 
+@keyframes spin-ring {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes prediction-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
 @keyframes reveal {
   from {
     opacity: 0;
@@ -285,6 +372,8 @@ body {
   .ecg-spark,
   .dot-seq,
   .reveal,
+  .spin-ring,
+  .prediction-card,
   .btn-pine::after {
     animation: none;
   }

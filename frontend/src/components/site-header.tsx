@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const links = [
-  { href: "#introduction", label: "Introduction" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#demographics", label: "Demographics" },
+  { href: "/#introduction", label: "Introduction" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#demographics", label: "Demographics" },
 ];
 
 export function SiteHeader() {
@@ -35,7 +35,7 @@ export function SiteHeader() {
             : "border-white/70 bg-white/55 backdrop-blur-md"
         }`}
       >
-        <Link href="#introduction" className="flex items-center gap-2.5 pl-1">
+        <Link href="/" className="flex items-center gap-2.5 pl-1">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pine text-white shadow-[0_8px_20px_-10px_rgba(14,122,70,0.9)]">
             <PulseMark />
           </span>
@@ -52,13 +52,13 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <a
-          href="#how-it-works"
+        <Link
+          href="/heartometer"
           className="btn-pine inline-flex h-10 items-center gap-2 rounded-full bg-pine px-4 text-sm font-medium text-white transition-colors hover:bg-pine-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
         >
-          See how it works
+          Try out
           <Arrow />
-        </a>
+        </Link>
       </div>
       <nav className="mx-auto mt-2 flex max-w-6xl gap-5 overflow-x-auto px-2 text-sm text-muted md:hidden">
         {links.map((link) => (
