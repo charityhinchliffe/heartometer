@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 const steps = [
   {
     number: "01",
@@ -20,10 +24,50 @@ const steps = [
 ];
 
 export function HowItWorks() {
+  const listRef = useRef<HTMLOListElement>(null);
+  const inside = useRef<(boolean | null)[]>(steps.map(() => null));
+  const timers = useRef<number[]>([]);
+  const [beating, setBeating] = useState<boolean[]>(steps.map(() => false));
+
+  useEffect(() => {
+    const cards = listRef.current?.querySelectorAll<HTMLElement>("[data-step]");
+    if (!cards?.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const trigger = (index: number) => {
+      window.clearTimeout(timers.current[index]);
+      setBeating((current) => current.map((value, i) => (i === index ? false : value)));
+      timers.current[index] = window.setTimeout(() => {
+        setBeating((current) => current.map((value, i) => (i === index ? true : value)));
+      }, 40 + index * 150);
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = Number((entry.target as HTMLElement).dataset.step);
+          const isIn = entry.isIntersecting;
+          const previous = inside.current[index];
+          if (previous === isIn) return;
+          inside.current[index] = isIn;
+          if (previous === null && !isIn) return;
+          trigger(index);
+        });
+      },
+      { threshold: 0.55 },
+    );
+
+    cards.forEach((card) => observer.observe(card));
+    return () => {
+      observer.disconnect();
+      timers.current.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, []);
+
   return (
     <section id="how-it-works" className="scroll-mt-28 py-8 sm:py-12">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
-        <div className="reveal overflow-hidden rounded-[36px] border border-line bg-white/80 px-5 py-14 shadow-[0_30px_80px_-48px_rgba(14,122,70,0.45)] backdrop-blur-sm sm:px-10 lg:py-20">
+        <div className="reveal rounded-[36px] border border-line bg-white/80 px-5 py-14 shadow-[0_30px_80px_-48px_rgba(14,122,70,0.45)] backdrop-blur-sm sm:px-10 lg:py-20">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-xl">
               <p className="text-sm font-medium tracking-[0.16em] text-pine uppercase">How it works</p>
@@ -41,10 +85,19 @@ export function HowItWorks() {
               <div className="h-px bg-line" />
               <div className="beam absolute top-0 left-0" />
             </div>
-            <ol className="grid gap-5 md:grid-cols-3">
-              {steps.map((step) => (
+            <ol ref={listRef} className="grid gap-5 md:grid-cols-3">
+              {steps.map((step, index) => (
                 <li key={step.number}>
-                  <article className="step-card group relative h-full overflow-hidden rounded-[28px] border border-line bg-white p-6 sm:p-7">
+                  <article
+                    data-step={index}
+                    className={`step-card group relative h-full overflow-hidden rounded-[28px] border border-line bg-white p-6 sm:p-7 ${
+                      beating[index] ? "is-beating" : ""
+                    }`}
+                    onAnimationEnd={(event) => {
+                      if (event.animationName !== "heartbeat") return;
+                      setBeating((current) => current.map((value, i) => (i === index ? false : value)));
+                    }}
+                  >
                     <div className="pointer-events-none absolute -top-6 -right-2 font-mono text-7xl font-semibold tracking-tighter text-pine/10 transition-colors duration-500 group-hover:text-pine/20">
                       {step.number}
                     </div>
