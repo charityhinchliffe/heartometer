@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 from functools import lru_cache
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
 from sklearn.compose import ColumnTransformer
@@ -25,6 +26,11 @@ DATA_PATH = Path(__file__).with_name("heart-disease-training.csv")
 
 GENDERS = ("female", "male")
 ALCOHOL_LEVELS = ("none", "occasional", "regular")
+
+
+class HeartDiseaseClassification(NamedTuple):
+    heart_disease: bool
+    probability: float
 
 
 def predict_heart_disease(
@@ -39,6 +45,17 @@ def predict_heart_disease(
     ``gender`` is ``female`` or ``male``. ``alcohol`` is ``none``,
     ``occasional``, or ``regular``. ``systolic`` is mmHg and ``sugar`` is mmol/L.
     """
+    return classify_heart_disease(age, gender, systolic, sugar, alcohol).heart_disease
+
+
+def classify_heart_disease(
+    age: float,
+    gender: str,
+    systolic: float,
+    sugar: float,
+    alcohol: str,
+) -> HeartDiseaseClassification:
+    """Return the class and the model's probability of heart disease."""
     features = _feature_row(
         _number("age", age),
         _number("systolic", systolic),
@@ -46,8 +63,10 @@ def predict_heart_disease(
         _choice("gender", gender, GENDERS),
         _choice("alcohol", alcohol, ALCOHOL_LEVELS),
     ).reshape(1, -1)
-    prediction = int(_trained_model().predict(features)[0])
-    return prediction == 1
+    model = _trained_model()
+    heart_disease = int(model.predict(features)[0]) == 1
+    probability = float(model.predict_proba(features)[0, 1])
+    return HeartDiseaseClassification(heart_disease, probability)
 
 
 @lru_cache(maxsize=1)

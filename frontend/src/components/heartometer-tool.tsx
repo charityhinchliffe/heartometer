@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { estimateChance, type AlcoholStatus, type Gender } from "@/lib/estimate";
+import { type AlcoholStatus, type Gender } from "@/lib/estimate";
 
 const alcoholOptions: { id: AlcoholStatus; label: string; hint: string }[] = [
   { id: "none", label: "None", hint: "No alcohol" },
@@ -17,6 +17,8 @@ const genderOptions: { id: Gender; label: string }[] = [
 
 type Result = {
   chance: number;
+  heartDisease: boolean;
+  signature: string;
   age: number;
   systolic: number;
   sugarMmol: number;
@@ -34,6 +36,7 @@ export function HeartometerTool() {
   const [genderError, setGenderError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -54,17 +57,44 @@ export function HeartometerTool() {
     }
     setGenderError(false);
     setAlcoholError(false);
+    setRequestError(null);
     flushSync(() => setLoading(true));
-    const chance = estimateChance({
-      age,
-      systolic,
-      sugarMmol: sugar,
-      alcohol,
-      gender,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 2400));
-    setResult({ chance, age, systolic, sugarMmol: sugar, alcohol, gender });
-    setLoading(false);
+    try {
+      const response = await fetch("/api/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          age,
+          gender,
+          systolic,
+          sugar,
+          alcohol,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("The prediction service could not classify these inputs.");
+      }
+      const body = (await response.json()) as {
+        heart_disease: boolean;
+        probability: number;
+        signature: string;
+      };
+      setResult({
+        chance: Math.round(body.probability * 100),
+        heartDisease: body.heart_disease,
+        signature: body.signature,
+        age,
+        systolic,
+        sugarMmol: sugar,
+        alcohol,
+        gender,
+      });
+    } catch {
+      setResult(null);
+      setRequestError("The prediction could not be completed. Check that the API is running and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -166,11 +196,12 @@ export function HeartometerTool() {
             Get a prediction
             <Arrow />
           </button>
+          {requestError ? <p className="mt-4 text-sm text-pine-deep">{requestError}</p> : null}
         </form>
 
         {result ? (
           <PredictionCard
-            key={`${result.chance}-${result.age}-${result.systolic}-${result.sugarMmol}-${result.alcohol}-${result.gender}`}
+            key={`${result.signature}`}
             result={result}
           />
         ) : null}
@@ -201,6 +232,8 @@ export function HeartometerTool() {
 
 function PredictionCard({ result }: { result: Result }) {
   const [progress, setProgress] = useState(0);
+  const [savingCard, setSavingCard] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -220,6 +253,22 @@ function PredictionCard({ result }: { result: Result }) {
     return () => cancelAnimationFrame(frame);
   }, [result]);
 
+  async function onScoreCard() {
+    setCardError(null);
+    setSavingCard(true);
+    try {
+      const { downloadScoreCard } = await import("@/lib/scorecard");
+      await downloadScoreCard(
+        result,
+        `https://aware-dish-jolt.ngrok-free.dev/verify/${result.signature}`,
+      );
+    } catch {
+      setCardError("The score card could not be created. Try again.");
+    } finally {
+      setSavingCard(false);
+    }
+  }
+
   const shown = Math.round(result.chance * progress);
 
   return (
@@ -233,7 +282,11 @@ function PredictionCard({ result }: { result: Result }) {
         {shown}
         <span className="text-pine">%</span>
       </p>
-      <p className="mt-2 text-base text-muted">Estimated chance of heart disease.</p>
+      <p className="mt-2 text-base text-muted">
+        {result.heartDisease
+          ? "Classified as heart disease, with this model probability."
+          : "Classified as no heart disease, with this model probability."}
+      </p>
       <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-pine-soft">
         <div
           className="h-full rounded-full bg-gradient-to-r from-[#8eecc0] to-[#0b6b3c] shadow-[0_0_16px_-4px_rgba(14,122,70,0.9)]"
@@ -250,6 +303,15 @@ function PredictionCard({ result }: { result: Result }) {
       <p className="mt-5 text-xs leading-relaxed text-muted">
         An informational estimate from these inputs. Not a medical diagnosis.
       </p>
+      <button
+        type="button"
+        onClick={onScoreCard}
+        disabled={savingCard}
+        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full border border-pine bg-white text-sm font-medium text-pine transition-colors hover:bg-pine-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine disabled:opacity-70"
+      >
+        {savingCard ? "Preparing score card" : "Download score card"}
+      </button>
+      {cardError ? <p className="mt-3 text-sm text-pine-deep">{cardError}</p> : null}
     </article>
   );
 }

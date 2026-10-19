@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: ["aware-dish-jolt.ngrok-free.dev"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
