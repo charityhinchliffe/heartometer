@@ -2,12 +2,17 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { estimateChance, type AlcoholStatus } from "@/lib/estimate";
+import { estimateChance, type AlcoholStatus, type Gender } from "@/lib/estimate";
 
 const alcoholOptions: { id: AlcoholStatus; label: string; hint: string }[] = [
   { id: "none", label: "None", hint: "No alcohol" },
   { id: "occasional", label: "Occasional", hint: "Now and then" },
   { id: "regular", label: "Regular", hint: "Most weeks" },
+];
+
+const genderOptions: { id: Gender; label: string }[] = [
+  { id: "female", label: "Female" },
+  { id: "male", label: "Male" },
 ];
 
 type Result = {
@@ -16,6 +21,7 @@ type Result = {
   systolic: number;
   sugarMmol: number;
   alcohol: AlcoholStatus;
+  gender: Gender;
 };
 
 export function HeartometerTool() {
@@ -24,6 +30,8 @@ export function HeartometerTool() {
   const [sugar, setSugar] = useState(5.4);
   const [alcohol, setAlcohol] = useState<AlcoholStatus | null>(null);
   const [alcoholError, setAlcoholError] = useState(false);
+  const [gender, setGender] = useState<Gender | null>(null);
+  const [genderError, setGenderError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -39,10 +47,12 @@ export function HeartometerTool() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!alcohol) {
-      setAlcoholError(true);
+    if (!gender || !alcohol) {
+      setGenderError(!gender);
+      setAlcoholError(!alcohol);
       return;
     }
+    setGenderError(false);
     setAlcoholError(false);
     flushSync(() => setLoading(true));
     const chance = estimateChance({
@@ -50,9 +60,10 @@ export function HeartometerTool() {
       systolic,
       sugarMmol: sugar,
       alcohol,
+      gender,
     });
     await new Promise((resolve) => setTimeout(resolve, 2400));
-    setResult({ chance, age, systolic, sugarMmol: sugar, alcohol });
+    setResult({ chance, age, systolic, sugarMmol: sugar, alcohol, gender });
     setLoading(false);
   }
 
@@ -68,10 +79,10 @@ export function HeartometerTool() {
             Try Heartometer
           </p>
           <h1 className="mt-5 text-4xl font-semibold tracking-[-0.045em] text-balance sm:text-5xl">
-            Four measures. One prediction.
+            Five measures. One prediction.
           </h1>
           <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-muted">
-            Enter your alcohol status, blood pressure, sugar level, and age.
+            Enter your gender, alcohol status, blood pressure, sugar level, and age.
           </p>
         </div>
 
@@ -81,11 +92,34 @@ export function HeartometerTool() {
           style={{ animationDelay: "120ms" }}
         >
           <fieldset>
+            <legend className="text-sm font-medium text-ink">Gender</legend>
+            <SegmentedControl
+              label="Gender"
+              options={genderOptions}
+              value={gender}
+              invalid={genderError}
+              onChange={(value) => {
+                setGender(value);
+                setGenderError(false);
+              }}
+            />
+            {genderError ? (
+              <p className="mt-2 text-sm text-pine-deep">Choose a gender to continue.</p>
+            ) : null}
+          </fieldset>
+
+          <fieldset className="mt-7">
             <legend className="text-sm font-medium text-ink">Alcohol status</legend>
-            <AlcoholPicker value={alcohol} invalid={alcoholError} onChange={(value) => {
-              setAlcohol(value);
-              setAlcoholError(false);
-            }} />
+            <SegmentedControl
+              label="Alcohol status"
+              options={alcoholOptions}
+              value={alcohol}
+              invalid={alcoholError}
+              onChange={(value) => {
+                setAlcohol(value);
+                setAlcoholError(false);
+              }}
+            />
             {alcoholError ? (
               <p className="mt-2 text-sm text-pine-deep">Choose an alcohol status to continue.</p>
             ) : null}
@@ -136,7 +170,7 @@ export function HeartometerTool() {
 
         {result ? (
           <PredictionCard
-            key={`${result.chance}-${result.age}-${result.systolic}-${result.sugarMmol}-${result.alcohol}`}
+            key={`${result.chance}-${result.age}-${result.systolic}-${result.sugarMmol}-${result.alcohol}-${result.gender}`}
             result={result}
           />
         ) : null}
@@ -207,7 +241,8 @@ function PredictionCard({ result }: { result: Result }) {
         />
       </div>
       <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
-        <Detail term="Alcohol status" value={labelFor(result.alcohol)} />
+        <Detail term="Gender" value={labelFor(genderOptions, result.gender)} />
+        <Detail term="Alcohol status" value={labelFor(alcoholOptions, result.alcohol)} />
         <Detail term="Blood pressure" value={`${result.systolic} mmHg`} />
         <Detail term="Sugar level" value={`${result.sugarMmol.toFixed(1)} mmol/L`} />
         <Detail term="Age" value={`${result.age} years`} />
@@ -219,38 +254,44 @@ function PredictionCard({ result }: { result: Result }) {
   );
 }
 
-function AlcoholPicker({
+function SegmentedControl<T extends string>({
+  label,
+  options,
   value,
   invalid,
   onChange,
 }: {
-  value: AlcoholStatus | null;
+  label: string;
+  options: { id: T; label: string; hint?: string }[];
+  value: T | null;
   invalid: boolean;
-  onChange: (value: AlcoholStatus) => void;
+  onChange: (value: T) => void;
 }) {
   const labelId = useId();
-  const index = value ? alcoholOptions.findIndex((option) => option.id === value) : -1;
+  const count = options.length;
+  const index = value ? options.findIndex((option) => option.id === value) : -1;
 
   return (
     <div
       role="radiogroup"
       aria-labelledby={labelId}
-      className={`relative mt-3 grid grid-cols-3 rounded-full bg-mist p-1 ${invalid ? "ring-2 ring-pine" : ""}`}
+      className={`relative mt-3 grid rounded-full bg-mist p-1 ${invalid ? "ring-2 ring-pine" : ""}`}
+      style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
     >
       <span id={labelId} className="sr-only">
-        Alcohol status
+        {label}
       </span>
       {index >= 0 ? (
         <span
           className="pointer-events-none absolute inset-y-1 rounded-full bg-pine shadow-[0_8px_18px_-10px_rgba(14,122,70,1)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{
-            width: "calc((100% - 0.5rem) / 3)",
-            left: `calc(0.25rem + ${index} * (100% - 0.5rem) / 3)`,
+            width: `calc((100% - 0.5rem) / ${count})`,
+            left: `calc(0.25rem + ${index} * (100% - 0.5rem) / ${count})`,
           }}
           aria-hidden="true"
         />
       ) : null}
-      {alcoholOptions.map((option) => {
+      {options.map((option) => {
         const selected = value === option.id;
         return (
           <button
@@ -264,7 +305,9 @@ function AlcoholPicker({
             }`}
           >
             <span className="block text-sm font-medium">{option.label}</span>
-            <span className={`block text-[10px] ${selected ? "text-white/80" : "text-muted"}`}>{option.hint}</span>
+            {option.hint ? (
+              <span className={`block text-[10px] ${selected ? "text-white/80" : "text-muted"}`}>{option.hint}</span>
+            ) : null}
           </button>
         );
       })}
@@ -328,8 +371,8 @@ function Detail({ term, value }: { term: string; value: string }) {
   );
 }
 
-function labelFor(alcohol: AlcoholStatus) {
-  return alcoholOptions.find((option) => option.id === alcohol)?.label ?? alcohol;
+function labelFor<T extends string>(options: { id: T; label: string }[], value: T) {
+  return options.find((option) => option.id === value)?.label ?? value;
 }
 
 function Arrow() {

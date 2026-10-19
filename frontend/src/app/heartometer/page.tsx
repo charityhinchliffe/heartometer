@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 export const metadata: Metadata = {
   title: "Try Heartometer",
   description:
-    "Enter alcohol status, blood pressure, sugar level, and age for a Heartometer prediction.",
+    "Enter gender, alcohol status, blood pressure, sugar level, and age for a Heartometer prediction.",
 };
 
 export default function HeartometerPage() {

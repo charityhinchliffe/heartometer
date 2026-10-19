@@ -6,8 +6,8 @@ const steps = [
   {
     number: "01",
     kicker: "You share",
-    title: "Four measures",
-    text: "You give your sugar level, blood pressure, age, and alcohol status.",
+    title: "Five measures",
+    text: "You give your gender, sugar level, blood pressure, age, and alcohol status.",
   },
   {
     number: "02",
@@ -76,7 +76,7 @@ export function HowItWorks() {
               </h2>
             </div>
             <p className="max-w-sm text-base leading-relaxed text-muted">
-              Heartometer stays narrow on purpose. The same four inputs go in, the model reads them, and a risk prediction comes back.
+              Heartometer stays narrow on purpose. The same five inputs go in, the model reads them, and a risk prediction comes back.
             </p>
           </div>
 

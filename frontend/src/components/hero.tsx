@@ -4,8 +4,8 @@ import Link from "next/link";
 const capabilities = [
   {
     kicker: "01",
-    title: "Four everyday measures",
-    text: "Blood sugar, blood pressure, age, and alcohol status are enough to start.",
+    title: "Five everyday measures",
+    text: "Blood sugar, blood pressure, age, gender, and alcohol status are enough to start.",
   },
   {
     kicker: "02",
@@ -23,6 +23,7 @@ const ticker = [
   "Blood sugar",
   "Blood pressure",
   "Age",
+  "Gender",
   "Alcohol status",
   "Machine learning",
   "Heart-disease prediction",
@@ -42,10 +43,10 @@ export function Hero() {
           </p>
           <h1 className="rise mt-6 max-w-xl text-[2.7rem] leading-[0.98] font-semibold tracking-[-0.045em] text-balance text-ink sm:text-6xl lg:text-[4.15rem]" style={{ animationDelay: "80ms" }}>
             Estimate your chance of{" "}
-            <span className="gradient-text">heart disease</span> from four measures.
+            <span className="gradient-text">heart disease</span> from five measures.
           </h1>
           <p className="rise mt-6 max-w-lg text-lg leading-relaxed text-muted" style={{ animationDelay: "160ms" }}>
-            Heartometer is a straightforward way to read personal risk. You enter your sugar level, blood pressure, age, and alcohol status. A machine learning model turns those inputs into a prediction of how likely heart disease is for you.
+            Heartometer is a straightforward way to read personal risk. You enter your sugar level, blood pressure, age, gender, and alcohol status. A machine learning model turns those inputs into a prediction of how likely heart disease is for you.
           </p>
           <div className="rise mt-8 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "240ms" }}>
             <Link
@@ -102,11 +103,11 @@ export function Hero() {
             />
           </div>
 
-          <div className="float-slower absolute top-6 -right-2 w-44 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-[0_18px_40px_-24px_rgba(16,33,23,0.55)] backdrop-blur-md sm:right-[-18px]">
+          <div className="float-slower absolute top-6 -right-2 w-52 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-[0_18px_40px_-24px_rgba(16,33,23,0.55)] backdrop-blur-md sm:right-[-18px]">
             <p className="text-[11px] font-medium tracking-wide text-pine uppercase">Inputs</p>
-            <p className="mt-1 text-sm font-semibold text-ink">Four measures in</p>
-            <div className="mt-3 flex gap-1.5">
-              {["Sugar", "BP", "Age", "Alcohol"].map((label, index) => (
+            <p className="mt-1 text-sm font-semibold text-ink">Five measures in</p>
+            <div className="mt-3 flex flex-wrap gap-x-2 gap-y-1.5">
+              {["Sugar", "BP", "Age", "Gender", "Alcohol"].map((label, index) => (
                 <span key={label} className="flex flex-col items-center gap-1">
                   <span
                     className="dot-seq h-2.5 w-2.5 rounded-full bg-pine"
